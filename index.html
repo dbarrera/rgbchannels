@@ -7,46 +7,46 @@
   </head>
   <body>
     <div id="main-view">
-      <!-- <img id="scream" src="img_the_scream.jpg" alt="The Scream" width="220" height="277"> -->
-      <!-- <img id="scream" src="img_the_scream.jpg" alt="The Scream" width="250" height="300"> -->
-      <!-- <canvas id="my-canvas" width="200" height="277" style="border:1px solid #d3d3d3;">Your browser does not support the HTML5 canvas tag.</canvas> -->
+      <!--If the canvas has any pixel/s that are from an untrusted source it will be tainted and you will not be able to read the pixel data. 
+          Trusted sources are same domain or images served with the appropriate CORS header information. 
+          Images that are on the file system can not have their pixels accessed. Once a canvas is tainted it can not be cleaned.-->
       <input type="file" id="input">
     </div>
     <script>
-      const convertURIToImageData = function(URI) {
-          return new Promise(function(resolve, reject) {
-              if (URI === null) return reject()
+      const computeAndLogAverageOf = function(displayName, arr) {
+          let sum = arr.reduce((a, b) => a + b),
+              avg = sum / arr.length
 
-              let canvas = document.createElement('canvas'),
-                  context = canvas.getContext('2d'),
-                  image = new Image()
-
-              image.addEventListener('load', function() {
-                  canvas.width = image.width
-                  canvas.height = image.height
-
-                  context.drawImage(image, 0, 0, canvas.width, canvas.height)
-
-                  resolve(context.getImageData(0, 0, canvas.width, canvas.height))
-              }, false)
-
-              image.src = URI
-          })
+          console.log(`${displayName} average value: ${avg}`)
       }
 
-      const handleFile = function() {
+      const computeAvgUsingCanvas = function() {
+          const convertURIToImageData = function(URI) {
+              return new Promise(function(resolve, reject) {
+                  if (URI === null) return reject()
+
+                  let canvas = document.createElement('canvas'),
+                      context = canvas.getContext('2d'),
+                      image = new Image()
+
+                  image.addEventListener('load', function() {
+                      canvas.width = image.width
+                      canvas.height = image.height
+
+                      context.drawImage(image, 0, 0, canvas.width, canvas.height)
+
+                      resolve(context.getImageData(0, 0, canvas.width, canvas.height))
+                  }, false)
+
+                  image.src = URI
+              })
+          }
+
           let self = this,
               file = self.files[0],
               reader = new FileReader()
 
           reader.onload = () => {
-              const computeAndLogAverageOf = function(displayName, arr) {
-                  let sum = arr.reduce((a, b) => a + b),
-                      avg = sum / arr.length
-
-                  console.log(`${displayName} average value: ${avg}`)
-              }
-
               convertURIToImageData(reader.result)
                 .then((imageData) => {
                     let pix = imageData.data,
@@ -61,40 +61,47 @@
                         // pix[i + 3] alpha (the fourth element)
                     }
 
-                    //console.log(`red: ${reds.length}`)
-                    //console.log(`green: ${greens.length}`)
-                    //console.log(`blue: ${blues.length}`)
-
-                    //console.log(`reds: ${reds.slice(0, 100)}`)
-                    //console.log(`greens: ${greens.slice(0, 100)}`)
-                    //console.log(`blues: ${blues.slice(0, 100)}`)
-
+                    console.log('Using canvas to scan RGB channels')
                     computeAndLogAverageOf('red', reds)
                     computeAndLogAverageOf('green', greens)
                     computeAndLogAverageOf('blue', blues)
                 })
-
-              let buffer = new Uint8ClampedArray(reader.result),
-                  reds = [],
-                  greens = [],
-                  blues = []
-
-              //for (let i = 0, bl = buffer.length; i < bl; i += 4) {
-              //    reds.push(buffer[i]) // store all the red
-              //    greens.push(buffer[i + 1]) // store all the green
-              //    blues.push(buffer[i + 2]) // store all the blue
-              //}
-
-              //computeAndLogAverageOf('red', reds)
-              //computeAndLogAverageOf('green', greens)
-              //computeAndLogAverageOf('blue', blues)
           }
 
           reader.readAsDataURL(file)
       }
 
+      const computeAvgUsingFileReader = function() {
+          let self = this,
+              file = self.files[0],
+              reader = new FileReader()
+
+          reader.onload = () => {
+              let buffer = new Uint8ClampedArray(reader.result),
+                  reds = [],
+                  greens = [],
+                  blues = []
+
+              for (let i = 0, bl = buffer.length; i < bl; i += 4) {
+                  reds.push(buffer[i]) // store all the red
+                  greens.push(buffer[i + 1]) // store all the green
+                  blues.push(buffer[i + 2]) // store all the blue
+                  // pix[i + 3] alpha (the fourth element)
+              }
+
+              console.log('Using ArrayBuffer to Uint8ClampedArray to scan RGB channels')
+              computeAndLogAverageOf('red', reds)
+              computeAndLogAverageOf('green', greens)
+              computeAndLogAverageOf('blue', blues)
+          }
+
+          reader.readAsArrayBuffer(file)
+      }
+
       document.getElementById('input')
-        .addEventListener('change', handleFile, false)
+          .addEventListener('change', computeAvgUsingCanvas, false)
+      document.getElementById('input')
+          .addEventListener('change', computeAvgUsingFileReader, false)
     </script>
   </body>
 </html>
