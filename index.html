@@ -13,28 +13,84 @@
       <input type="file" id="input">
     </div>
     <script>
+      const convertURIToImageData = function(URI) {
+          return new Promise(function(resolve, reject) {
+              if (URI === null) return reject()
+
+              let canvas = document.createElement('canvas'),
+                  context = canvas.getContext('2d'),
+                  image = new Image()
+
+              image.addEventListener('load', function() {
+                  canvas.width = image.width
+                  canvas.height = image.height
+
+                  context.drawImage(image, 0, 0, canvas.width, canvas.height)
+
+                  resolve(context.getImageData(0, 0, canvas.width, canvas.height))
+              }, false)
+
+              image.src = URI
+          })
+      }
+
       const handleFile = function() {
-        let self = this,
-            file = self.files[0],
-            reader = new FileReader()
+          let self = this,
+              file = self.files[0],
+              reader = new FileReader()
 
-        reader.onload = () => {
-          let img = new Image()
-          console.log(reader.result)
-          img.src = reader.result
-          console.log(`Image dimension: ${img.width}, ${img.height}`)
+          reader.onload = () => {
+              const computeAndLogAverageOf = function(displayName, arr) {
+                  let sum = arr.reduce((a, b) => a + b),
+                      avg = sum / arr.length
 
-          let c = document.createElement('canvas')
-          console.log(`Canvas dimension: ${c.width}, ${c.height}`)
+                  console.log(`${displayName} average value: ${avg}`)
+              }
 
-          let ctx = c.getContext('2d')
+              convertURIToImageData(reader.result)
+                .then((imageData) => {
+                    let pix = imageData.data,
+                        reds = [],
+                        greens = [],
+                        blues = []
 
-          ctx.drawImage(img, 0, 0)
+                    for (let i = 0, pl = pix.length; i < pl; i += 4) {
+                        reds.push(pix[i]) // store all the red
+                        greens.push(pix[i + 1]) // store all the green
+                        blues.push(pix[i + 2]) // store all the blue
+                        // pix[i + 3] alpha (the fourth element)
+                    }
 
-          let imgData = ctx.getImageData(0, 0, img.width, img.height)
-        }
+                    //console.log(`red: ${reds.length}`)
+                    //console.log(`green: ${greens.length}`)
+                    //console.log(`blue: ${blues.length}`)
 
-        reader.readAsDataURL(file)
+                    //console.log(`reds: ${reds.slice(0, 100)}`)
+                    //console.log(`greens: ${greens.slice(0, 100)}`)
+                    //console.log(`blues: ${blues.slice(0, 100)}`)
+
+                    computeAndLogAverageOf('red', reds)
+                    computeAndLogAverageOf('green', greens)
+                    computeAndLogAverageOf('blue', blues)
+                })
+
+              let buffer = new Uint8ClampedArray(reader.result),
+                  reds = [],
+                  greens = [],
+                  blues = []
+
+              //for (let i = 0, bl = buffer.length; i < bl; i += 4) {
+              //    reds.push(buffer[i]) // store all the red
+              //    greens.push(buffer[i + 1]) // store all the green
+              //    blues.push(buffer[i + 2]) // store all the blue
+              //}
+
+              //computeAndLogAverageOf('red', reds)
+              //computeAndLogAverageOf('green', greens)
+              //computeAndLogAverageOf('blue', blues)
+          }
+
+          reader.readAsDataURL(file)
       }
 
       document.getElementById('input')
