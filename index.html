@@ -7,39 +7,86 @@
   </head>
   <body>
     <div id="main-view">
-        <img id="scream" src="https://i.imgur.com/HqQYZif.jpg" alt="The Scream" width="220" height="277" crossorigin="anonymous">
+        <!--<img id="scream" src="https://i.imgur.com/HqQYZif.jpg" alt="The Scream" width="220" height="277" crossorigin="anonymous">-->
+        <input type="file" id="file-input">
     </div>
     <script>
-        document.getElementById('scream').onload = () => {
-            let c = document.createElement('canvas'),
-                ctx = c.getContext('2d'),
-                img = document.getElementById('scream')
+        const handleFile = function() {
+            let self = this,
+                file = self.files[0],
+                reader = new FileReader
 
-            c.width = img.width
-            c.height = img.height
+            reader.onload = () => {
+                let c = document.createElement('canvas'),
+                    ctx = c.getContext('2d'),
+                    img = new Image
 
-            ctx.drawImage(img, 0, 0)
+                img.onload = () => {
+                    c.width = img.width
+                    c.height = img.height
 
-            let imgData = ctx.getImageData(0, 0, c.width, c.height),
-                pix = imgData.data, reds = [], greens = [], blues = []
+                    ctx.drawImage(img, 0, 0)
 
-            for (let i = 0, pl = pix.length; i < pl; i += 4) {
-                reds.push(pix[i])       // store red
-                greens.push(pix[i + 1]) // store green
-                blues.push(pix[i + 2])  // store blue
+                    let imgData = ctx.getImageData(0, 0, c.width, c.height),
+                        pix = imgData.data, reds = [], greens = [], blues = []
+
+                    for (let i = 0, pl = pix.length; i < pl; i += 4) {
+                        reds.push(pix[i])       // store red
+                        greens.push(pix[i + 1]) // store green
+                        blues.push(pix[i + 2])  // store blue
+                    }
+
+                    const computeAvg = (arr) => {
+                        let sum = arr.reduce((a, b) => a + b),
+                            avg = sum / arr.length
+
+                        return avg
+                    }
+
+                    console.log(`Red: ${computeAvg(reds)}`)
+                    console.log(`Green: ${computeAvg(greens)}`)
+                    console.log(`Blue: ${computeAvg(blues)}`)
+                }
+
+                img.src = reader.result
             }
 
-            const computeAvg = (arr) => {
-                let sum = arr.reduce((a, b) => a + b),
-                    avg = sum / arr.length
-
-                return avg
-            }
-
-            console.log(`Red: ${computeAvg(reds)}`)
-            console.log(`Green: ${computeAvg(greens)}`)
-            console.log(`Blue: ${computeAvg(blues)}`)
+            reader.readAsDataURL(file)
         }
+
+        document.getElementById('file-input')
+            .addEventListener('change', handleFile, false)
+
+        //document.getElementById('scream').onload = () => {
+        //    let c = document.createElement('canvas'),
+        //        ctx = c.getContext('2d'),
+        //        img = document.getElementById('scream')
+
+        //    c.width = img.width
+        //    c.height = img.height
+
+        //    ctx.drawImage(img, 0, 0)
+
+        //    let imgData = ctx.getImageData(0, 0, c.width, c.height),
+        //        pix = imgData.data, reds = [], greens = [], blues = []
+
+        //    for (let i = 0, pl = pix.length; i < pl; i += 4) {
+        //        reds.push(pix[i])       // store red
+        //        greens.push(pix[i + 1]) // store green
+        //        blues.push(pix[i + 2])  // store blue
+        //    }
+
+        //    const computeAvg = (arr) => {
+        //        let sum = arr.reduce((a, b) => a + b),
+        //            avg = sum / arr.length
+
+        //        return avg
+        //    }
+
+        //    console.log(`Red: ${computeAvg(reds)}`)
+        //    console.log(`Green: ${computeAvg(greens)}`)
+        //    console.log(`Blue: ${computeAvg(blues)}`)
+        //}
     </script>
   </body>
 </html>
