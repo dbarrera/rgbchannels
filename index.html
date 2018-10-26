@@ -7,98 +7,39 @@
   </head>
   <body>
     <div id="main-view">
-      <input type="file" id="input">
+        <img id="scream" src="https://i.imgur.com/HqQYZif.jpg" alt="The Scream" width="220" height="277" crossorigin="anonymous">
     </div>
     <script>
-      const computeAndLogAverageOf = function(displayName, arr) {
-          let sum = arr.reduce((a, b) => a + b),
-              avg = sum / arr.length
+        document.getElementById('scream').onload = () => {
+            let c = document.createElement('canvas'),
+                ctx = c.getContext('2d'),
+                img = document.getElementById('scream')
 
-          console.log(`${displayName} average value: ${avg}`)
-      }
+            c.width = img.width
+            c.height = img.height
 
-      const computeAvgUsingCanvas = function() {
-          const convertURIToImageData = function(URI) {
-              return new Promise(function(resolve, reject) {
-                  if (URI === null) return reject()
+            ctx.drawImage(img, 0, 0)
 
-                  let canvas = document.createElement('canvas'),
-                      context = canvas.getContext('2d'),
-                      image = new Image()
+            let imgData = ctx.getImageData(0, 0, c.width, c.height),
+                pix = imgData.data, reds = [], greens = [], blues = []
 
-                  image.addEventListener('load', function() {
-                      canvas.width = image.width
-                      canvas.height = image.height
+            for (let i = 0, pl = pix.length; i < pl; i += 4) {
+                reds.push(pix[i])       // store red
+                greens.push(pix[i + 1]) // store green
+                blues.push(pix[i + 2])  // store blue
+            }
 
-                      context.drawImage(image, 0, 0, canvas.width, canvas.height)
+            const computeAvg = (arr) => {
+                let sum = arr.reduce((a, b) => a + b),
+                    avg = sum / arr.length
 
-                      resolve(context.getImageData(0, 0, canvas.width, canvas.height))
-                  }, false)
+                return avg
+            }
 
-                  image.src = URI
-              })
-          }
-
-          let self = this,
-              file = self.files[0],
-              reader = new FileReader()
-
-          reader.onload = () => {
-              convertURIToImageData(reader.result)
-                .then((imageData) => {
-                    let pix = imageData.data,
-                        reds = [],
-                        greens = [],
-                        blues = []
-
-                    for (let i = 0, pl = pix.length; i < pl; i += 4) {
-                        reds.push(pix[i]) // store all the red
-                        greens.push(pix[i + 1]) // store all the green
-                        blues.push(pix[i + 2]) // store all the blue
-                        // pix[i + 3] alpha (the fourth element)
-                    }
-
-                    console.log('Using canvas to scan RGB channels')
-                    computeAndLogAverageOf('red', reds)
-                    computeAndLogAverageOf('green', greens)
-                    computeAndLogAverageOf('blue', blues)
-                })
-          }
-
-          reader.readAsDataURL(file)
-      }
-
-      const computeAvgUsingFileReader = function() {
-          let self = this,
-              file = self.files[0],
-              reader = new FileReader()
-
-          reader.onload = () => {
-              let buffer = new Uint8ClampedArray(reader.result),
-                  reds = [],
-                  greens = [],
-                  blues = []
-
-              for (let i = 0, bl = buffer.length; i < bl; i += 4) {
-                  reds.push(buffer[i]) // store all the red
-                  greens.push(buffer[i + 1]) // store all the green
-                  blues.push(buffer[i + 2]) // store all the blue
-                  // pix[i + 3] alpha (the fourth element)
-              }
-
-              console.log('Using ArrayBuffer to Uint8ClampedArray to scan RGB channels')
-              computeAndLogAverageOf('red', reds)
-              computeAndLogAverageOf('green', greens)
-              computeAndLogAverageOf('blue', blues)
-          }
-
-          reader.readAsArrayBuffer(file)
-      }
-
-      document.getElementById('input')
-          .addEventListener('change', computeAvgUsingCanvas, false)
-      document.getElementById('input')
-          .addEventListener('change', computeAvgUsingFileReader, false)
+            console.log(`Red: ${computeAvg(reds)}`)
+            console.log(`Green: ${computeAvg(greens)}`)
+            console.log(`Blue: ${computeAvg(blues)}`)
+        }
     </script>
   </body>
 </html>
